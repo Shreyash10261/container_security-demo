@@ -2,18 +2,24 @@ trigger:
 - main
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'ubuntu-latest'
 
 steps:
 
-- script: |
-    docker build -t container-demo:v1 .
-  displayName: 'Build Docker Image'
+- checkout: self
 
-- script: |
-    docker run --rm \
-      -v /var/run/docker.sock:/var/run/docker.sock \
-      aquasec/trivy image \
-      --severity HIGH,CRITICAL \
-      container-demo:v1
-  displayName: 'Trivy Security Scan'
+- task: SonarCloudPrepare@3
+  inputs:
+    SonarCloud: 'SonarCloudConnection'
+    organization: 'shreyash10261'
+    scannerMode: 'CLI'
+    configMode: 'manual'
+    cliProjectKey: 'container-security-demo'
+    cliProjectName: 'container-security-demo'
+    cliSources: '.'
+
+- task: SonarCloudAnalyze@3
+
+- task: SonarCloudPublish@3
+  inputs:
+    pollingTimeoutSec: '300'
